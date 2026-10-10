@@ -1,0 +1,64 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{80900AC6-900A-466C-A417-2552B2A1CB5E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rosterix.Api", "src\Rosterix.Api\Rosterix.Api.csproj", "{B516E752-0C48-43BB-8BD7-E94A37C3FD21}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rosterix.Application", "src\Rosterix.Application\Rosterix.Application.csproj", "{C36CDABC-F267-437F-A5CB-4A7626DD66A9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rosterix.Domain", "src\Rosterix.Domain\Rosterix.Domain.csproj", "{4ED728A3-3588-4381-8591-7922B3A72FF6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rosterix.Infrastructure", "src\Rosterix.Infrastructure\Rosterix.Infrastructure.csproj", "{395D148D-2144-49C7-B456-EEF5B1D99328}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{8C6F815D-2015-4A4C-8856-0D754B638E96}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rosterix.Api.Tests", "tests\Rosterix.Api.Tests\Rosterix.Api.Tests.csproj", "{1F87748A-32CB-4B82-BFF6-DD55C5B0A8FE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rosterix.Domain.Tests", "tests\Rosterix.Domain.Tests\Rosterix.Domain.Tests.csproj", "{CF017B79-4C0B-4146-9C20-CA4EA3E98565}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B516E752-0C48-43BB-8BD7-E94A37C3FD21}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B516E752-0C48-43BB-8BD7-E94A37C3FD21}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B516E752-0C48-43BB-8BD7-E94A37C3FD21}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B516E752-0C48-43BB-8BD7-E94A37C3FD21}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C36CDABC-F267-437F-A5CB-4A7626DD66A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C36CDABC-F267-437F-A5CB-4A7626DD66A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C36CDABC-F267-437F-A5CB-4A7626DD66A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C36CDABC-F267-437F-A5CB-4A7626DD66A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4ED728A3-3588-4381-8591-7922B3A72FF6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4ED728A3-3588-4381-8591-7922B3A72FF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4ED728A3-3588-4381-8591-7922B3A72FF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4ED728A3-3588-4381-8591-7922B3A72FF6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{395D148D-2144-49C7-B456-EEF5B1D99328}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{395D148D-2144-49C7-B456-EEF5B1D99328}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{395D148D-2144-49C7-B456-EEF5B1D99328}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{395D148D-2144-49C7-B456-EEF5B1D99328}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F87748A-32CB-4B82-BFF6-DD55C5B0A8FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F87748A-32CB-4B82-BFF6-DD55C5B0A8FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F87748A-32CB-4B82-BFF6-DD55C5B0A8FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F87748A-32CB-4B82-BFF6-DD55C5B0A8FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF017B79-4C0B-4146-9C20-CA4EA3E98565}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF017B79-4C0B-4146-9C20-CA4EA3E98565}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF017B79-4C0B-4146-9C20-CA4EA3E98565}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF017B79-4C0B-4146-9C20-CA4EA3E98565}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B516E752-0C48-43BB-8BD7-E94A37C3FD21} = {80900AC6-900A-466C-A417-2552B2A1CB5E}
+		{C36CDABC-F267-437F-A5CB-4A7626DD66A9} = {80900AC6-900A-466C-A417-2552B2A1CB5E}
+		{4ED728A3-3588-4381-8591-7922B3A72FF6} = {80900AC6-900A-466C-A417-2552B2A1CB5E}
+		{395D148D-2144-49C7-B456-EEF5B1D99328} = {80900AC6-900A-466C-A417-2552B2A1CB5E}
+		{1F87748A-32CB-4B82-BFF6-DD55C5B0A8FE} = {8C6F815D-2015-4A4C-8856-0D754B638E96}
+		{CF017B79-4C0B-4146-9C20-CA4EA3E98565} = {8C6F815D-2015-4A4C-8856-0D754B638E96}
+	EndGlobalSection
+EndGlobal
