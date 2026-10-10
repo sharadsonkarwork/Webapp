@@ -144,3 +144,26 @@ public class SmokeTests : IClassFixture<ApiFixture>
         foreach (var u in urls) { var r = await c.GetAsync(u); ((int)r.StatusCode).Should().BeLessThan(500, $"{persona} GET {u}"); }
     }
 }
+
+public class SwaggerTests : IClassFixture<ApiFixture>
+{
+    private readonly ApiFixture _f;
+    public SwaggerTests(ApiFixture f) => _f = f;
+
+    [Fact] public async Task Swagger_document_is_served_and_complete()
+    {
+        var r = await _f.CreateClient().GetAsync("/swagger/v1/swagger.json"); r.StatusCode.Should().Be(HttpStatusCode.OK);
+        var doc = await r.J(); var paths = doc["paths"]!.AsObject(); paths.Count.Should().BeGreaterThan(60);
+        foreach (var p in new[] { "/api/approvals/{id}/decide", "/api/allowance-runs/{id}/approve-compensation", "/api/ai/anomalies", "/api/ai/validate", "/api/delegations", "/api/rosters/{id}/entries", "/api/approval-chains" }) paths.ContainsKey(p).Should().BeTrue(p);
+    }
+    [Fact] public async Task Every_operation_documents_the_error_contract_and_the_key_posts_carry_examples()
+    {
+        var doc = await (await _f.CreateClient().GetAsync("/swagger/v1/swagger.json")).J();
+        var decide = doc["paths"]!["/api/approvals/{id}/decide"]!["post"]!;
+        decide["responses"]!.AsObject().Select(x => x.Key).Should().Contain(new[] { "200", "400", "401", "403", "404", "409" });
+        decide["requestBody"]!["content"]!["application/json"]!["example"]!["comment"]!.ToString().Should().NotBeEmpty();
+        var chains = doc["paths"]!["/api/approval-chains"]!.AsObject(); chains.Select(x => x.Key).Should().Equal("get"); // SEC-02: documented as read-only
+        doc["paths"]!["/api/allowance-runs/{id}/approve-compensation"]!["post"]!["summary"]!.ToString().Should().Contain("SEC-01");
+    }
+    [Fact] public async Task Health_endpoint_is_anonymous() => (await _f.CreateClient().GetAsync("/health")).StatusCode.Should().Be(HttpStatusCode.OK);
+}

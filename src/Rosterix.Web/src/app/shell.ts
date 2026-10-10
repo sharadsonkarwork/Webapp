@@ -84,6 +84,7 @@ export class Shell implements OnInit {
     { title: 'Admin', items: [
       { label: 'Foundation data', icon: 'sliders', route: '/foundation', roles: ['HRSS'] },
       { label: 'Audit trail', icon: 'shield', route: '/audit', roles: ['HRSS'] },
+      { label: 'Design system', icon: 'sliders', route: '/gallery' },
     ] },
   ];
   groups = computed(() => { this.session.me(); return this.all.map(g => ({ ...g, items: g.items.filter(i => !i.roles || this.session.has(...i.roles)) })).filter(g => g.items.length); });

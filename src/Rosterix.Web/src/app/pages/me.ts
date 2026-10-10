@@ -20,7 +20,8 @@ import { RxAiCard, RxAiSkeleton, RxDialog, RxEmpty, RxIcon, RxPageHeader, RxStat
       <div class="row" style="margin-bottom:10px"><label class="field" style="flex-direction:row;align-items:center;gap:6px">Month<input type="month" [(ngModel)]="month" name="m" (ngModelChange)="loadRoster()" aria-label="Month"></label>
         <ng-container *ngIf="roster() as r"> <span class="chip neutral">{{ r.shifts }} shifts</span><span class="chip neutral">{{ r.offs }} weekly offs</span> </ng-container></div>
       <ng-container *ngIf="roster() as r">
-        <ng-container *ngIf="r.draftPending"> <div class="banner info" style="margin-bottom:10px"><rx-icon name="clock"/><span>Your {{ month | rxMonth }} roster isn’t published yet. You’ll be notified when it is.</span></div> </ng-container>
+        <ng-container *ngIf="fellBackFrom()"> <div class="banner info" style="margin-bottom:10px"><rx-icon name="info"/><span>Your {{ fellBackFrom() | rxMonth }} roster isn’t published yet, so this shows {{ month | rxMonth }}. You’ll be notified when the new one is ready.</span></div> </ng-container>
+        <ng-container *ngIf="r.draftPending && !fellBackFrom()"> <div class="banner info" style="margin-bottom:10px"><rx-icon name="clock"/><span>Your {{ month | rxMonth }} roster isn’t published yet. You’ll be notified when it is.</span></div> </ng-container>
         <ng-container *ngIf="r.entries.length">
           <div class="card"><div class="table-wrap"><table class="rx comfortable"><caption class="sr-only">My roster for {{ month }}</caption><thead><tr><th scope="col">Date</th><th scope="col">Shift</th><th scope="col">Time</th><th scope="col">Project</th></tr></thead><tbody>
             <ng-container *ngFor="let e of r.entries"> <tr><th scope="row" class="mono" style="white-space:nowrap;background:transparent;position:static;color:var(--rx-text);font-size:14px;font-weight:500">{{ e.date | rxDate:false }}</th><td><ng-container *ngIf="e.type === 'Shift'"> <strong>{{ e.shift }}</strong> </ng-container><ng-container *ngIf="!(e.type === 'Shift')"> <rx-status [value]="e.type === 'WeeklyOff' ? 'Closed' : e.type === 'Leave' ? 'Pending' : 'Active'" [label]="e.type === 'WeeklyOff' ? 'Weekly off' : e.type"/> </ng-container><ng-container *ngIf="e.holiday"> <span class="muted small"> · {{ e.holiday }}</span> </ng-container></td><td class="mono">{{ e.time || '—' }}</td><td>{{ e.project }}</td></tr> </ng-container></tbody></table></div></div>
@@ -80,12 +81,20 @@ export class MePage implements OnInit {
   due = computed(() => this.decls().filter(d => d.status === 'Due').length);
   ngOnInit() {
     const t = this.session.me()!.today as string; this.month = t.slice(0, 7); const p = new Date(t); p.setMonth(p.getMonth() - 1); this.amonth = `${p.getFullYear()}-${String(p.getMonth() + 1).padStart(2, '0')}`;
-    this.loadRoster(); this.loadAllowance(); this.loadDecls(); this.api.get<J[]>('/api/me/queries').subscribe(q => this.queries.set(q));
+    this.loadRoster(true); this.loadAllowance(); this.loadDecls(); this.api.get<J[]>('/api/me/queries').subscribe(q => this.queries.set(q));
     this.api.get(`/api/ai/preferences/${this.session.me()!.id}`).subscribe(p => { this.pref.set(p); this.pf = { shift: p.payload.overrideShiftTypeId ?? '', off: p.payload.overrideOffDay ?? '', note: p.payload.overrideNote ?? '' }; });
     this.api.get('/api/lookups').subscribe(l => this.shifts.set(l.shiftTypes.filter((s: J) => s.isActive)));
   }
   key(e: KeyboardEvent) { const ks = this.tabs.map(t => t.k); const i = ks.indexOf(this.tab()); const n = e.key === 'ArrowRight' ? (i + 1) % ks.length : e.key === 'ArrowLeft' ? (i + ks.length - 1) % ks.length : -1; if (n >= 0) { this.tab.set(ks[n]); setTimeout(() => document.getElementById('mt-' + ks[n])?.focus()); } }
-  loadRoster() { this.roster.set(null); this.api.get('/api/me/roster', { month: this.month }).subscribe(r => this.roster.set(r)); }
+  fellBackFrom = signal('');
+  loadRoster(allowFallback = false) {
+    this.roster.set(null); this.fellBackFrom.set(allowFallback ? this.fellBackFrom() : '');
+    this.api.get('/api/me/roster', { month: this.month }).subscribe(r => {
+      // If this month isn't published yet, show the latest month that is (and say so), so the page is never empty for no reason.
+      if (allowFallback && !r.entries.length) { const d = new Date(this.month + '-01T00:00:00'); d.setMonth(d.getMonth() - 1); this.fellBackFrom.set(this.month); this.month = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; this.loadRoster(false); return; }
+      this.roster.set(r);
+    });
+  }
   loadAllowance() { this.loadingAl.set(true); this.api.get('/api/me/allowance', { month: this.amonth }).subscribe({ next: a => { this.al.set(a); this.loadingAl.set(false); }, error: () => this.loadingAl.set(false) }); }
   loadDecls() { this.api.get<J[]>('/api/me/declarations').subscribe(d => this.decls.set(d)); }
   sign() { this.busy.set(true); this.api.post(`/api/me/declarations/${this.signing()!.id}/sign`).subscribe({ next: () => { this.busy.set(false); this.signing.set(null); this.toast.success('Signed. Thank you.'); this.loadDecls(); }, error: e => { this.busy.set(false); this.toast.error(e.title); } }); }

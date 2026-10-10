@@ -7,7 +7,7 @@ const ROUTES: [string, string[]][] = [
   ['/approvals', ['priya', 'arjun', 'meera', 'karthik', 'fathima']], ['/roster', ['priya', 'arjun', 'meera', 'karthik', 'fathima']], ['/allowance', ['priya', 'arjun', 'meera', 'fathima']],
   ['/exceptions', ['priya', 'arjun', 'meera', 'fathima']], ['/anomalies', ['priya', 'arjun', 'meera', 'fathima']], ['/reports', ['*']], ['/payroll', ['meera', 'karthik', 'fathima']],
   ['/movements', ['fathima']], ['/delegation', ['priya', 'arjun', 'fathima']], ['/arrears', ['priya', 'arjun', 'meera', 'karthik', 'fathima']], ['/settlement', ['fathima']],
-  ['/me', ['*']], ['/foundation', ['fathima']], ['/notifications', ['*']], ['/audit', ['fathima']],
+  ['/me', ['*']], ['/foundation', ['fathima']], ['/notifications', ['*']], ['/audit', ['fathima']], ['/gallery', ['*']],
 ];
 
 for (const persona of PERSONAS) {
@@ -39,4 +39,14 @@ test.describe('axe: dark theme and phone width', () => {
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth); expect(overflow, 'no horizontal page scroll').toBeLessThanOrEqual(1); });
   }
   test('login page', async ({ page }) => { await page.goto('/login'); await ready(page); await axe(page, 'login'); });
+});
+
+test.describe('design tokens', () => {
+  for (const theme of ['light', 'dark'] as const) {
+    test(`every token pair in the gallery meets its contrast target (${theme})`, async ({ page }) => {
+      await signIn(page, 'priya', theme); await page.goto('/gallery'); await ready(page);
+      const rows = await page.$$eval('table.rx tbody tr', trs => trs.map(tr => ({ pair: tr.querySelector('td')!.textContent!.trim(), result: tr.querySelector('rx-status')!.textContent!.trim() })));
+      expect(rows.length).toBeGreaterThanOrEqual(15); expect(rows.filter(r => r.result !== 'Pass')).toEqual([]);
+    });
+  }
 });

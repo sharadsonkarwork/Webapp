@@ -1,0 +1,14 @@
+image:
+  api: { repository: ghcr.io/example/rosterix-api, tag: latest }
+  web: { repository: ghcr.io/example/rosterix-web, tag: latest }
+replicas: { api: 2, web: 2 }
+host: rosterix.example.com
+azureAd: { tenantId: "", clientId: "" }     # set per environment; never commit real values
+environment: Staging                         # anything but Development (the persona switcher exists only in Development, SEC-08)
+llmNarration: false
+existingSecret: rosterix-secrets             # must contain key `sql-connection-string` (Key Vault / Akeyless via External Secrets)
+ingress: { className: nginx, clusterIssuer: letsencrypt, tlsSecret: rosterix-tls }
+autoscaling: { enabled: true, minReplicas: 2, maxReplicas: 6, cpu: 70 }
+resources:
+  api: { requests: { cpu: 200m, memory: 256Mi }, limits: { cpu: "1", memory: 768Mi } }
+  web: { requests: { cpu: 50m, memory: 64Mi }, limits: { cpu: 300m, memory: 192Mi } }

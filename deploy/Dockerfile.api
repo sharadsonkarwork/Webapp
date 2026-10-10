@@ -1,2 +1,20 @@
-FROM scratch
+# syntax=docker/dockerfile:1
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+COPY global.json Directory.Build.props Rosterix.sln ./
+COPY src/Rosterix.Domain/*.csproj src/Rosterix.Domain/
+COPY src/Rosterix.Application/*.csproj src/Rosterix.Application/
+COPY src/Rosterix.Infrastructure/*.csproj src/Rosterix.Infrastructure/
+COPY src/Rosterix.Api/*.csproj src/Rosterix.Api/
+RUN dotnet restore src/Rosterix.Api/Rosterix.Api.csproj
+COPY src/ src/
+RUN dotnet publish src/Rosterix.Api/Rosterix.Api.csproj -c Release -o /app --no-restore /p:UseAppHost=false
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+WORKDIR /app
+COPY --from=build /app .
+ENV ASPNETCORE_URLS=http://+:8080 DOTNET_EnableDiagnostics=0
+EXPOSE 8080
+# SEC-09: never run as root. The .NET 8 images ship a non-root `app` user.
 USER app
+ENTRYPOINT ["dotnet", "Rosterix.Api.dll"]

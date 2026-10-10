@@ -1,0 +1,55 @@
+# Rosterix 2.0 local stack:  docker compose up
+#   web  http://localhost:4200     api + Swagger  http://localhost:5199/swagger
+# No manual step and no secret in this file: a one-shot service generates a random SQL Server
+# password into a volume on first boot; SQL Server and the API read it from there (SEC-04).
+# The API runs with ASPNETCORE_ENVIRONMENT=Development so the persona switcher works. In staging/production
+# it runs without it and uses Azure AD (see deploy/helm/rosterix/values.yaml).
+name: rosterix
+
+services:
+  secrets-init:
+    image: alpine:3.20
+    volumes: [ "secrets:/secrets" ]
+    command: >
+      sh -c 'test -s /secrets/sa || (head -c 32 /dev/urandom | base64 | tr -dc A-Za-z0-9 | head -c 24 > /secrets/sa && printf "Aa1!" >> /secrets/sa); chmod 0644 /secrets/sa'
+    restart: "no"
+
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    depends_on: { secrets-init: { condition: service_completed_successfully } }
+    environment: { ACCEPT_EULA: "Y", MSSQL_PID: "Developer" }
+    volumes: [ "secrets:/secrets:ro", "sqldata:/var/opt/mssql" ]
+    entrypoint: [ "/bin/bash", "-c", "export MSSQL_SA_PASSWORD=$$(cat /secrets/sa) && exec /opt/mssql/bin/sqlservr" ]
+    healthcheck:
+      test: [ "CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$(cat /secrets/sa)\" -Q 'SELECT 1' -b -o /dev/null" ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  api:
+    build: { context: ., dockerfile: deploy/Dockerfile.api }
+    depends_on: { sql: { condition: service_healthy } }
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      Rosterix__FixedToday: "2026-10-10"
+      Cors__Origins__0: "http://localhost:4200"
+    volumes: [ "secrets:/secrets:ro" ]
+    entrypoint: [ "/bin/sh", "-c", "export ConnectionStrings__Rosterix=\"Server=sql;Database=Rosterix;User Id=sa;Password=$$(cat /secrets/sa);TrustServerCertificate=True\" && exec dotnet Rosterix.Api.dll" ]
+    ports: [ "5199:8080" ]
+    healthcheck:
+      test: [ "CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080 && printf \"GET /health HTTP/1.0\\r\\n\\r\\n\" >&3 && head -n1 <&3 | grep -q 200'" ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  web:
+    build: { context: ., dockerfile: deploy/Dockerfile.web }
+    depends_on: { api: { condition: service_healthy } }
+    environment: { API_UPSTREAM: "http://api:8080" }
+    ports: [ "4200:8080" ]
+
+volumes:
+  secrets:
+  sqldata:

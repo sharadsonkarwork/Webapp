@@ -50,6 +50,7 @@ export const routes: Routes = [
       R('me', 'My work', null, () => import('./pages/me').then(m => m.MePage)),
       R('foundation', 'Foundation data', ['HRSS'], () => import('./pages/foundation').then(m => m.FoundationPage)),
       R('notifications', 'Notifications', null, () => import('./pages/me').then(m => m.NotificationsPage)),
+      R('gallery', 'Design system', null, () => import('./pages/gallery').then(m => m.GalleryPage)),
       R('audit', 'Audit trail', ['HRSS'], () => import('./pages/foundation').then(m => m.AuditPage)),
       R('**', 'Not found', null, () => import('./pages/home').then(m => m.NotFoundPage)),
     ],

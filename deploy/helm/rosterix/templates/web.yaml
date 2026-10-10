@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-web
+  labels:
+    {{- include "rosterix.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicas.web }}
+  selector: { matchLabels: { app: {{ .Release.Name }}-web } }
+  template:
+    metadata: { labels: { app: {{ .Release.Name }}-web } }
+    spec:
+      automountServiceAccountToken: false
+      securityContext: { runAsNonRoot: true, runAsUser: 101, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: web
+          image: "{{ .Values.image.web.repository }}:{{ .Values.image.web.tag }}"
+          ports: [ { containerPort: 8080, name: http } ]
+          env: [ { name: API_UPSTREAM, value: "http://{{ .Release.Name }}-api:8080" } ]
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: [ "ALL" ] } }
+          volumeMounts: [ { name: tmp, mountPath: /tmp }, { name: conf, mountPath: /etc/nginx/conf.d } ]
+          readinessProbe: { httpGet: { path: /health, port: http }, periodSeconds: 10 }
+          resources: {{- toYaml .Values.resources.web | nindent 12 }}
+      volumes: [ { name: tmp, emptyDir: {} }, { name: conf, emptyDir: {} } ]
+---
+apiVersion: v1
+kind: Service
+metadata: { name: {{ .Release.Name }}-web }
+spec: { selector: { app: {{ .Release.Name }}-web }, ports: [ { port: 80, targetPort: http, name: http } ] }
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}
+  annotations:
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.clusterIssuer }}
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-protocols: "TLSv1.2 TLSv1.3"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "Strict-Transport-Security: max-age=31536000; includeSubDomains";
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  tls: [ { hosts: [ {{ .Values.host }} ], secretName: {{ .Values.ingress.tlsSecret }} } ]
+  rules:
+    - host: {{ .Values.host }}
+      http: { paths: [ { path: /, pathType: Prefix, backend: { service: { name: {{ .Release.Name }}-web, port: { name: http } } } } ] }

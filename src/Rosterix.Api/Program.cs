@@ -78,6 +78,9 @@ builder.Services.AddEndpointsApiExplorer().AddSwaggerGen(o =>
 {
     o.SwaggerDoc("v1", new OpenApiInfo { Title = "Rosterix 2.0 API", Version = "v1", Description = "Workforce, roster and allowance management. AI endpoints under /api/ai are advisory and read-only; nothing they return is persisted without an explicit human action." });
     o.AddSecurityDefinition("DevPersona", new OpenApiSecurityScheme { Type = SecuritySchemeType.ApiKey, In = ParameterLocation.Header, Name = "X-Dev-Persona", Description = "Development only: priya | arjun | meera | karthik | fathima | ravi" });
+    o.CustomSchemaIds(t => t.DeclaringType != null ? t.DeclaringType.Name.Replace("Controller", "") + t.Name : t.Name);
+    o.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "Rosterix.Api.xml"), true);
+    o.OperationFilter<Rosterix.Api.StandardResponsesFilter>();
     o.AddSecurityRequirement(new OpenApiSecurityRequirement { [new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "DevPersona" } }] = new List<string>() });
 });
 builder.Services.AddHsts(o => { o.MaxAge = TimeSpan.FromDays(365); o.IncludeSubDomains = true; });
