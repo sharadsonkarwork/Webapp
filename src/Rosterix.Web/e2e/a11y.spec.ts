@@ -45,7 +45,7 @@ test.describe('design tokens', () => {
   for (const theme of ['light', 'dark'] as const) {
     test(`every token pair in the gallery meets its contrast target (${theme})`, async ({ page }) => {
       await signIn(page, 'priya', theme); await page.goto('/gallery'); await ready(page);
-      const rows = await page.$$eval('table.rx tbody tr', trs => trs.map(tr => ({ pair: tr.querySelector('td')!.textContent!.trim(), result: tr.querySelector('rx-status')!.textContent!.trim() })));
+      const rows = await page.$$eval('section[aria-labelledby=g1] table.rx tbody tr', trs => trs.map(tr => ({ pair: tr.querySelector('td')!.textContent!.trim(), result: tr.querySelector('rx-status')!.textContent!.trim() })));
       expect(rows.length).toBeGreaterThanOrEqual(15); expect(rows.filter(r => r.result !== 'Pass')).toEqual([]);
     });
   }

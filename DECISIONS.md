@@ -19,7 +19,7 @@ Not exercised here (written and reviewed, but never run): `docker compose up` an
 
 ### D-00a Last full Playwright + axe run
 
-_See the bottom of this file for the recorded result._
+Full run (117 tests): 114 passed, 3 failed. The failures were (a) a scrollable table region that wasn't keyboard-focusable at 390 px, fixed by making table wrappers focusable regions, and (b) the gallery contrast test also reading the sample table, fixed by scoping it. All 7 affected tests were re-run and pass. The remaining 110 tests were not re-run after those two edits.
 
 ## Product and scope
 
@@ -93,4 +93,4 @@ _See the bottom of this file for the recorded result._
 
 ## Last recorded full test run
 
-_Filled in at the end of the build._
+Backend 200/200, Jest 31/31, Playwright 114/117 on the full run, then the 3 failures fixed and re-run (see D-00a).

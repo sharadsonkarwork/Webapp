@@ -86,7 +86,7 @@ export class AllowancePage implements OnInit {
   <ng-container *ngIf="lines() as l">
     <rx-dialog [title]="'How ' + l.name + '’s allowance was calculated'" [wide]="true" (close)="lines.set(null)">
       <p class="small muted">Every line below shows the shift, the rate in effect on that date and any rate change. Nothing here can be edited; if something looks wrong, raise it as an exception or an employee query.</p>
-      <div class="table-wrap" style="max-height:55vh"><table class="rx"><caption class="sr-only">Allowance lines</caption><thead><tr><th>Date</th><th>Shift</th><th class="num">Amount</th><th>Explanation</th></tr></thead><tbody>
+      <div class="table-wrap" style="max-height:55vh" tabindex="0" role="region" aria-label="Scrollable table"><table class="rx"><caption class="sr-only">Allowance lines</caption><thead><tr><th>Date</th><th>Shift</th><th class="num">Amount</th><th>Explanation</th></tr></thead><tbody>
         <ng-container *ngFor="let x of l.rows"> <tr><td class="mono" style="white-space:nowrap">{{ x.workDate | rxDate:false }}</td><td>{{ x.shift }}<ng-container *ngIf="x.status === 'Flagged'"> <rx-status value="Flagged" /> </ng-container></td><td class="num">{{ x.amount | inr }}</td><td class="wrap small">{{ x.trace }}</td></tr> </ng-container></tbody></table></div>
       <div footer><button type="button" class="btn" (click)="lines.set(null)">Close</button></div>
     </rx-dialog>

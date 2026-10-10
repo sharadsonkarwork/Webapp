@@ -74,7 +74,7 @@ export class TaggingPage implements OnInit {
             <label class="field">Paste rows or choose a file<textarea [(ngModel)]="csv" name="csv" rows="4" placeholder="E1020,2026-11-02,"></textarea></label>
             <div class="row"><input type="file" accept=".csv,text/csv" (change)="file($event)" aria-label="Choose CSV file"><button type="button" class="btn" (click)="validateCsv()" [disabled]="!csv.trim()">Check rows</button></div>
             <ng-container *ngIf="csvRows().length">
-              <div class="table-wrap"><table class="rx"><caption class="sr-only">Row-level results</caption><thead><tr><th>Row</th><th>Employee</th><th>Result</th></tr></thead><tbody>
+              <div class="table-wrap" tabindex="0" role="region" aria-label="Scrollable table"><table class="rx"><caption class="sr-only">Row-level results</caption><thead><tr><th>Row</th><th>Employee</th><th>Result</th></tr></thead><tbody>
                 <ng-container *ngFor="let r of csvRows()"> <tr><td class="mono">{{ r.row }}</td><td>{{ r.name || r.employeeNumber }}</td><td class="wrap"><ng-container *ngIf="r.ok"> <rx-status value="Pass" label="Ready"/> </ng-container><ng-container *ngIf="!(r.ok)"> <rx-status value="Fail" label="Fix"/> </ng-container> <span class="small">{{ r.messages.join(' ') }}</span></td></tr> </ng-container>
               </tbody></table></div>
               <button type="button" class="btn primary" (click)="addCsv()" [disabled]="!csvOk()">Add {{ csvOk() }} valid row{{ csvOk() === 1 ? '' : 's' }}</button>

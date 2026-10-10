@@ -190,7 +190,7 @@ export interface Column { key: string; label: string; type?: 'text' | 'num' | 'm
 @Component({
   selector: 'rx-table', standalone: true, imports: [CommonModule, NgTemplateOutlet, RxIcon, RxStatus, InrPipe],
   template: `
-  <div class="table-wrap">
+  <div class="table-wrap" tabindex="0" role="region" aria-label="Scrollable table">
   <table class="rx" [class.comfortable]="comfortable">
     <ng-container *ngIf="caption"> <caption class="sr-only">{{ caption }}</caption> </ng-container>
     <thead><tr>
