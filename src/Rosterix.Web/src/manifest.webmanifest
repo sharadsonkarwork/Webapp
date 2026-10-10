@@ -1,0 +1,5 @@
+{
+  "name": "Rosterix 2.0", "short_name": "Rosterix", "description": "Workforce, roster and allowance management",
+  "start_url": "/", "scope": "/", "display": "standalone", "background_color": "#EEF1F5", "theme_color": "#1F4E79",
+  "icons": [ { "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" } ]
+}

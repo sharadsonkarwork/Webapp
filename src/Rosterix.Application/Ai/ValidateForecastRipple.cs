@@ -36,12 +36,14 @@ public sealed class ConstraintValidationAi : AiServiceBase, IAiUseCase<Validatio
             var ctx = RuleContextFactory.For(ds, id, r.ProjectId, r.Month, merged);
             foreach (var v in _rules.Evaluate(ctx).Where(v => v.RuleCode is not ("BR-11" or "BR-12")))
                 violations.Add(new ValidationItem(id, ctx.EmployeeName, v.RuleCode, v.Severity, v.Message, v.AffectedEntities.ToList(), v.SuggestedFix));
-            // near-miss band
-            foreach (var run in Br02MaxConsecutiveDays.Runs(ctx).Where(x => x.Count == ctx.Parameters.MaxConsecutiveDays - 1 || x.Count == ctx.Parameters.MaxConsecutiveDays))
-                near.Add(new NearMiss(id, ctx.EmployeeName, "BR-02", $"{ctx.EmployeeName} is on day {run.Count} of {ctx.Parameters.MaxConsecutiveDays} consecutive working days ({run[0]:d MMM}–{run[^1]:d MMM}). One more shift would breach the limit."));
-            foreach (var (a, b, gap) in Br03MinRest.Gaps(ctx).Where(g => g.Gap >= ctx.Parameters.MinRestHours && g.Gap < ctx.Parameters.MinRestHours + 1))
+            // near-miss band. A whole-roster scan only reports "day 5 of 6" (a regular 6-on/1-off pattern sits exactly at the limit, which is legal and not news);
+            // a scan of edits also reports anything at the limit that the edit touched.
+            var edited = r.Edits.Where(x => x.EmployeeId == id).Select(x => x.WorkDate).ToHashSet(); var scan = edited.Count == 0;
+            foreach (var run in Br02MaxConsecutiveDays.Runs(ctx).Where(x => x.Count == ctx.Parameters.MaxConsecutiveDays - 1 || (!scan && x.Count == ctx.Parameters.MaxConsecutiveDays && x.Any(edited.Contains))))
+                near.Add(new NearMiss(id, ctx.EmployeeName, "BR-02", $"{ctx.EmployeeName} is on day {run.Count} of {ctx.Parameters.MaxConsecutiveDays} consecutive working days ({run[0]:d MMM}–{run[^1]:d MMM}). {(run.Count < ctx.Parameters.MaxConsecutiveDays ? "One more shift would reach" : "This is exactly at")} the limit."));
+            foreach (var (a, b, gap) in Br03MinRest.Gaps(ctx).Where(g => g.Gap >= ctx.Parameters.MinRestHours && g.Gap < ctx.Parameters.MinRestHours + 1 && (!scan && (edited.Contains(g.A.Date) || edited.Contains(g.B.Date)))))
                 near.Add(new NearMiss(id, ctx.EmployeeName, "BR-03", $"Rest between {a.Date:d MMM} and {b.Date:d MMM} is {gap:0.#} h, just {gap - ctx.Parameters.MinRestHours:0.#} h above the minimum."));
-            foreach (var (ws, h) in Br07MaxWeeklyHours.Weekly(ctx).Where(w => w.Hours <= ctx.Parameters.MaxWeeklyHours && w.Hours > ctx.Parameters.MaxWeeklyHours - 4))
+            foreach (var (ws, h) in Br07MaxWeeklyHours.Weekly(ctx).Where(w => w.Hours <= ctx.Parameters.MaxWeeklyHours && w.Hours > ctx.Parameters.MaxWeeklyHours - 4 && (w.Hours < ctx.Parameters.MaxWeeklyHours || (!scan && Enumerable.Range(0, 7).Any(i => edited.Contains(w.WeekStart.AddDays(i)))))))
                 near.Add(new NearMiss(id, ctx.EmployeeName, "BR-07", $"{h:0.#} h scheduled in the week of {ws:d MMM}. The guideline is {ctx.Parameters.MaxWeeklyHours:0.#} h."));
         }
         var hasBlock = violations.Any(v => v.Severity == RuleSeverity.Block);
@@ -90,7 +92,7 @@ public sealed class CostPredictionAi : AiServiceBase, IAiUseCase<ForecastRequest
         return new AiSuggestion<ForecastPayload>
         {
             UseCaseCode = Code, Confidence = AiScoring.Clamp(0.45 + 0.15 * hist.Count),
-            Summary = $"Forecast ₹{cur.Total:N0} for {r.Month}{(hist.Count > 0 ? $" ({(variance >= 0 ? "+" : "")}{variance:0.#}% vs the last {hist.Count}-month average)" : "")}.",
+            Summary = $"Forecast ₹{cur.Total:N0} for {ShiftMath.MonthStart(r.Month):MMMM yyyy}{(hist.Count > 0 ? $" ({(variance >= 0 ? "+" : "")}{variance:0.#}% vs the last {hist.Count}-month average)" : "")}.",
             Impact = "For planning only. Final amounts come from the allowance run after the month closes.",
             Reasons = Narrate(reasons), Payload = new(cur.Total, avg, Math.Round(variance, 1), hist, drivers, cur.Lines.Count)
         };
